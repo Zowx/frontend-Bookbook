@@ -1,210 +1,220 @@
-import React, { useState, useEffect } from 'react';
-import BookCard from '../Components/BookCard';
-import Navbar from '../Components/NavBar';
+import React, { useState, useEffect } from "react";
+import Navbar from "../Components/NavBar";
+import Footer from "../Components/Footer";
+import BookCard from "../Components/BookCard";
 
 const Catalog = () => {
-    const [books, setBooks] = useState([]);
-    const [filteredBooks, setFilteredBooks] = useState([]);
-    const [filters, setFilters] = useState({
-        title: '',
-        author: '',
-        genre: [],
-        publication_date: '',
-        format: [],
-        reservation_Id: '',
-        comment_id: ''
-    });
-    const [currentPage, setCurrentPage] = useState(1);
-    const booksPerPage = 25;
+  const [books, setBooks] = useState([]);
+  const [filteredBooks, setFilteredBooks] = useState([]);
+  const [filters, setFilters] = useState({
+    title: "",
+    author: "",
+    genre: [],
+    publication_date: "",
+    format: [],
+    reservation_Id: "",
+  });
+  const [currentPage, setCurrentPage] = useState(1);
+  const booksPerPage = 25;
+  const [isLoading, setIsLoading] = useState(true);
 
-    useEffect(() => {
-        // Fetch data from DummyJSON API
-        fetch('https://dummyjson.com/products')
-            .then(response => response.json())
-            .then(data => {
-                setBooks(data.products);
-                setFilteredBooks(data.products);
-            });
-    }, []);
+  useEffect(() => {
+    fetch("http://localhost:3001/api/books")
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then((data) => {
+        console.log(data)
+        if (Array.isArray(data)) {
+          setBooks(data);
+          setFilteredBooks(data);
+        }
+      })
+      .catch((error) => console.error("Erreur lors de la récupération des livres:", error))
+      .finally(() => setIsLoading(false));
+  }, []);
 
-    const handleFilterChange = (category, value) => {
-        setFilters(prevFilters => {
-            const newFilters = { ...prevFilters };
-            if (Array.isArray(newFilters[category])) {
-                if (newFilters[category].includes(value)) {
-                    newFilters[category] = newFilters[category].filter(item => item !== value);
-                } else {
-                    newFilters[category].push(value);
-                }
-            } else {
-                newFilters[category] = value;
-            }
-            return newFilters;
-        });
+  const handleFilterChange = (key, value) => {
+    if (key === "genre" || key === "format") {
+      const currentFilters = filters[key];
+      const newFilters = currentFilters.includes(value)
+        ? currentFilters.filter((item) => item !== value)
+        : [...currentFilters, value];
+      setFilters((prev) => ({ ...prev, [key]: newFilters }));
+    } else {
+      setFilters((prev) => ({ ...prev, [key]: value }));
+    }
+  };
+
+  useEffect(() => {
+    const applyFilters = () => {
+      let filtered = [...books];
+
+      if (filters.title) {
+        filtered = filtered.filter((book) =>
+          book.title.toLowerCase().includes(filters.title.toLowerCase())
+        );
+      }
+      if (filters.author) {
+        filtered = filtered.filter((book) =>
+          book.author.toLowerCase().includes(filters.author.toLowerCase())
+        );
+      }
+      if (filters.genre.length > 0) {
+        filtered = filtered.filter((book) =>
+          filters.genre.every((g) => book.genre.toLowerCase().includes(g.toLowerCase()))
+        );
+      }
+      if (filters.publication_date) {
+        filtered = filtered.filter((book) =>
+          book.publication_date?.startsWith(filters.publication_date)
+        );
+      }
+      if (filters.format.length > 0) {
+        filtered = filtered.filter((book) =>
+          filters.format.includes(book.format)
+        );
+      }
+
+      setFilteredBooks(filtered);
     };
 
-    useEffect(() => {
-        let filtered = books;
-        if (filters.title) {
-            filtered = filtered.filter(book => book.title.toLowerCase().includes(filters.title.toLowerCase()));
-        }
-        if (filters.author) {
-            filtered = filtered.filter(book => book.author.toLowerCase().includes(filters.author.toLowerCase()));
-        }
-        if (filters.genre.length > 0) {
-            filtered = filtered.filter(book => filters.genre.includes(book.genre));
-        }
-        if (filters.publication_date) {
-            filtered = filtered.filter(book => book.publication_date === filters.publication_date);
-        }
-        if (filters.format.length > 0) {
-            filtered = filtered.filter(book => filters.format.includes(book.format));
-        }
-        if (filters.reservation_Id) {
-            filtered = filtered.filter(book => book.reservation_Id === filters.reservation_Id);
-        }
-        if (filters.comment_id) {
-            filtered = filtered.filter(book => book.comment_id === filters.comment_id);
-        }
-        setFilteredBooks(filtered);
-    }, [filters, books]);
+    applyFilters();
+  }, [filters, books]);
 
-    const totalPages = Math.ceil(filteredBooks.length / booksPerPage);
+  const indexOfLastBook = currentPage * booksPerPage;
+  const indexOfFirstBook = indexOfLastBook - booksPerPage;
+  const currentBooks = filteredBooks.slice(indexOfFirstBook, indexOfLastBook);
+  const totalPages = Math.ceil(filteredBooks.length / booksPerPage);
 
-    const indexOfLastBook = currentPage * booksPerPage;
-    const indexOfFirstBook = indexOfLastBook - booksPerPage;
-    const currentBooks = filteredBooks.slice(indexOfFirstBook, indexOfLastBook);
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
 
-    const handlePageChange = (pageNumber) => {
-        setCurrentPage(pageNumber);
-    };
-
-    return (
-        <div className='h-screen'>
-            <Navbar />
-            <div className='flex h-full'>
-                <div className="flex flex-col justify-between items-start h-3/4 w-56 bg-blue-900 p-4 overflow-y-auto text-white custom-scrollbar">
-                    <h4 className='text-lg w-full text-center font-bold mb-4'>Filtre</h4>
-                    
-                    <div className='mb-4'>
-                        <h5 className='font-semibold mb-2'>Titre</h5>
-                        <input
-                            type="text"
-                            className='w-full p-2 rounded'
-                            placeholder="Rechercher par titre"
-                            onChange={(e) => handleFilterChange('title', e.target.value)}
-                        />
-                    </div>
-
-                    <div className='mb-4'>
-                        <h5 className='font-semibold mb-2'>Auteur</h5>
-                        <input
-                            type="text"
-                            className='w-full p-2 rounded'
-                            placeholder="Rechercher par auteur"
-                            onChange={(e) => handleFilterChange('author', e.target.value)}
-                        />
-                    </div>
-                    
-                    <div className='mb-4'>
-                        <h5 className='font-semibold mb-2'>Genre</h5>
-                        <div className='flex flex-col max-h-32 overflow-y-auto custom-scrollbar'>
-                            <label className='flex items-center'>
-                                <input type="checkbox" className='mr-2 custom-checkbox' onChange={() => handleFilterChange('genre', 'Policier')} /> Policier
-                            </label>
-                            <label className='flex items-center'>
-                                <input type="checkbox" className='mr-2 custom-checkbox' onChange={() => handleFilterChange('genre', 'Fiction')} /> Fiction
-                            </label>
-                            <label className='flex items-center'>
-                                <input type="checkbox" className='mr-2 custom-checkbox' onChange={() => handleFilterChange('genre', 'Romance')} /> Romance
-                            </label>
-                            <label className='flex items-center'>
-                                <input type="checkbox" className='mr-2 custom-checkbox' onChange={() => handleFilterChange('genre', 'Science-fiction')} /> Science-fiction
-                            </label>
-                            <label className='flex items-center'>
-                                <input type="checkbox" className='mr-2 custom-checkbox' onChange={() => handleFilterChange('genre', 'Fantastique')} /> Fantastique
-                            </label>
-                            <label className='flex items-center'>
-                                <input type="checkbox" className='mr-2 custom-checkbox' onChange={() => handleFilterChange('genre', 'Horreur')} /> Horreur
-                            </label>
-                            <label className='flex items-center'>
-                                <input type="checkbox" className='mr-2 custom-checkbox' onChange={() => handleFilterChange('genre', 'Historique')} /> Historique
-                            </label>
-                            <label className='flex items-center'>
-                                <input type="checkbox" className='mr-2 custom-checkbox' onChange={() => handleFilterChange('genre', 'Biographie')} /> Biographie
-                            </label>
-                            <label className='flex items-center'>
-                                <input type="checkbox" className='mr-2 custom-checkbox' onChange={() => handleFilterChange('genre', 'Thriller')} /> Thriller
-                            </label>
-                            <label className='flex items-center'>
-                                <input type="checkbox" className='mr-2 custom-checkbox' onChange={() => handleFilterChange('genre', 'Aventure')} /> Aventure
-                            </label>
-                        </div>
-                    </div>
-
-                    <div className='mb-4'>
-                        <h5 className='font-semibold mb-2'>Date de publication</h5>
-                        <input
-                            type="date"
-                            className='w-full p-2 rounded'
-                            onChange={(e) => handleFilterChange('publication_date', e.target.value)}
-                        />
-                    </div>
-                    
-                    <div className='mb-4'>
-                        <h5 className='font-semibold mb-2'>Format</h5>
-                        <div className='flex flex-col'>
-                            <label className='flex items-center'>
-                                <input type="checkbox" className='mr-2 custom-checkbox' onChange={() => handleFilterChange('format', 'Ebook')} /> Ebook
-                            </label>
-                            <label className='flex items-center'>
-                                <input type="checkbox" className='mr-2 custom-checkbox' onChange={() => handleFilterChange('format', 'Papier')} /> Papier
-                            </label>
-                            <label className='flex items-center'>
-                                <input type="checkbox" className='mr-2 custom-checkbox' onChange={() => handleFilterChange('format', 'Audio')} /> Audio
-                            </label>
-                        </div>
-                    </div>
-
-                    <div className='mb-4'>
-                        <h5 className='font-semibold mb-2'>ID de réservation</h5>
-                        <input
-                            type="text"
-                            className='w-full p-2 rounded'
-                            placeholder="Rechercher par ID de réservation"
-                            onChange={(e) => handleFilterChange('reservation_Id', e.target.value)}
-                        />
-                    </div>
-
-                    <div className='mb-4'>
-                        <h5 className='font-semibold mb-2'>ID de commentaire</h5>
-                        <input
-                            type="text"
-                            className='w-full p-2 rounded'
-                            placeholder="Rechercher par ID de commentaire"
-                            onChange={(e) => handleFilterChange('comment_id', e.target.value)}
-                        />
-                    </div>
-                </div>
-                <div className='flex flex-wrap gap-5 m-5 w-full'>
-                    {currentBooks.map(book => (
-                        <BookCard key={book.id} book={book} />
-                    ))}
-                </div>
+  return (
+    <div className="h-full mb-28">
+      <Navbar />
+      <div className="flex h-full">
+        {/* Sidebar */}
+        <div className="flex flex-col sticky top-0 justify-between items-start w-1/6 bg-[#1C2953] p-8 overflow-y-auto text-white custom-scrollbar h-1/2">
+          {/* Filtres */}
+          <div className="mb-4">
+            <h5 className="font-semibold mb-2">Auteur</h5>
+            <input
+              type="text"
+              className="w-full p-2 rounded bg-gray-800 text-white"
+              placeholder="Rechercher par auteur"
+              onChange={(e) => handleFilterChange("author", e.target.value)}
+            />
+          </div>
+          <div className="mb-4 w-full">
+            <h5 className="font-semibold mb-2 w-full">Genre</h5>
+            <div className="flex flex-col w-full max-h-40 overflow-y-auto custom-scrollbar">
+              {[
+                "Policier",
+                "Fiction",
+                "Romance",
+                "Science-fiction",
+                "Fantastique",
+                "Horreur",
+                "Historique",
+                "Biographie",
+                "Thriller",
+                "Aventure",
+              ].map((genre) => (
+                <label key={genre} className="flex items-center">
+                  <input
+                    type="checkbox"
+                    className="mr-2 custom-checkbox"
+                    onChange={() => handleFilterChange("genre", genre)}
+                  />
+                  {genre}
+                </label>
+              ))}
             </div>
-            <div className='flex justify-center mt-4'>
-                {Array.from({ length: totalPages }, (_, index) => (
-                    <button
-                        key={index}
-                        className={`mx-1 px-3 py-1 rounded ${currentPage === index + 1 ? 'bg-blue-700 text-white' : 'bg-white text-blue-700'}`}
-                        onClick={() => handlePageChange(index + 1)}
-                    >
-                        {index + 1}
-                    </button>
-                ))}
-            </div>
+          </div>
+          <div className="mb-4">
+            <h5 className="font-semibold mb-2">Date de publication</h5>
+            <input
+              type="date"
+              className="w-full p-2 rounded bg-gray-800 text-white"
+              onChange={(e) =>
+                handleFilterChange("publication_date", e.target.value)
+              }
+            />
+          </div>
+          <div className="mb-4">
+            <h5 className="font-semibold mb-2">Format</h5>
+            {["Ebook", "Papier", "Audio"].map((format) => (
+              <label key={format} className="flex items-center">
+                <input
+                  type="checkbox"
+                  className="mr-2 custom-checkbox"
+                  onChange={() => handleFilterChange("format", format)}
+                />
+                {format}
+              </label>
+            ))}
+          </div>
+          <div className="mb-4">
+            <h5 className="font-semibold mb-2">ID de réservation</h5>
+            <input
+              type="text"
+              className="w-full p-2 rounded bg-gray-800 text-white"
+              placeholder="Rechercher par ID de réservation"
+              onChange={(e) =>
+                handleFilterChange("reservation_Id", e.target.value)
+              }
+            />
+          </div>
         </div>
-    );
+
+        {/* Content */}
+        <div className="flex flex-col m-2 flex-wrap items-center content-center gap-5 w-4/5">
+          <div className="mb-4 w-3/4">
+            <input
+              type="text"
+              placeholder="Rechercher un livre..."
+              className="p-3 text-black rounded-full w-full border-2 border-blue-800 outline-none text-sm shadow-md transition-all duration-300 focus:border-blue-600 focus:shadow-lg"
+              onChange={(e) => handleFilterChange("title", e.target.value)}
+            />
+          </div>
+          <div className="flex flex-wrap justify-center gap-6">
+            {isLoading ? (
+              <p>Chargement des livres...</p>
+            ) : currentBooks.length > 0 ? (
+              currentBooks.map((book) => (
+                <BookCard key={book.id} book={book} />
+              ))
+            ) : (
+              <p>Aucun livre trouvé.</p>
+            )}
+          </div>
+
+          {/* Pagination */}
+          <div className="flex justify-center mt-4">
+            {Array.from({ length: totalPages }, (_, index) => (
+              <button
+                key={index}
+                className={`mx-1 px-4 py-2 rounded ${
+                  currentPage === index + 1
+                    ? "bg-blue-700 text-white"
+                    : "bg-white text-blue-700"
+                }`}
+                onClick={() => handlePageChange(index + 1)}
+              >
+                {index + 1}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+      <Footer />
+    </div>
+  );
 };
 
 export default Catalog;

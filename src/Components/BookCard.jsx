@@ -1,5 +1,4 @@
 import React from 'react';
-// import Img from '../Assets/couverture.webp'
 
 const BookCard = ({ book }) => {
     return (
