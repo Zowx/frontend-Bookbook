@@ -3,6 +3,7 @@ import Navbar from "../Components/NavBar";
 import Footer from "../Components/Footer";
 import BookCard from "../Components/BookCard";
 
+
 const Catalog = () => {
   const [books, setBooks] = useState([]);
   const [filteredBooks, setFilteredBooks] = useState([]);
@@ -98,9 +99,7 @@ const Catalog = () => {
     <div className="h-full mb-28">
       <Navbar />
       <div className="flex h-full">
-        {/* Sidebar */}
         <div className="flex flex-col sticky top-0 justify-between items-start w-1/6 bg-[#1C2953] p-8 overflow-y-auto text-white custom-scrollbar h-1/2">
-          {/* Filtres */}
           <div className="mb-4">
             <h5 className="font-semibold mb-2">Auteur</h5>
             <input
