@@ -4,6 +4,7 @@ import HomePage from "../Pages/HomePages";
 import Catalog from "../Pages/Catalog"
 import Login from "../Pages/Login";
 import Register from "../Pages/Register"
+import BookCardDetail from "../Pages/BookCardDetail"
 
 function Router() {
     return (
@@ -13,6 +14,7 @@ function Router() {
             <Route path="/createBook" element={<CreateBookPage />} />
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/details/:id" element={<BookCardDetail />} />
             <Route path="*" element={<Navigate to="/" />} />
         </Routes>
     )

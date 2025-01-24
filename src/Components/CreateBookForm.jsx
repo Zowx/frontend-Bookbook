@@ -5,7 +5,7 @@ function CreateBookForm({ onSubmit }) {
   const [formData, setFormData] = useState({
     title: '',
     author: '',
-    genre: '',
+    genre: [],
     description: '',
     publication: '',
     format: '',
@@ -38,17 +38,16 @@ function CreateBookForm({ onSubmit }) {
       .then((data) => {
         console.log('Réponse backend :', data);
 
-          alert('Livre créé avec succès');
-          setFormData({
-            title: '',
-            author: '',
-            genre: '',
-            description: '',
-            publication: '',
-            format: '',
-          });
-          navigate('/'); 
-        
+        alert('Livre créé avec succès');
+        setFormData({
+          title: '',
+          author: '',
+          genre: [],
+          description: '',
+          publication: '',
+          format: '',
+        });
+        navigate('/');
       })
       .catch((error) => {
         console.error('Erreur :', error);
@@ -57,10 +56,9 @@ function CreateBookForm({ onSubmit }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-md mx-auto border border-gray-500 rounded-md p-4">
-      {/* Champs du formulaire */}
-      <div className='mb-4'>
-        <label htmlFor="title" className='block text-sm font-medium text-gray-700'>Titre :</label>
+    <form onSubmit={handleSubmit} className="max-w-md mx-auto border border-gray-500 rounded-md p-6 bg-[#1C2953]">
+      <div className="mb-4">
+        <label htmlFor="title" className="block text-sm font-medium text-white">Titre :</label>
         <input
           type="text"
           id="title"
@@ -68,11 +66,11 @@ function CreateBookForm({ onSubmit }) {
           value={formData.title}
           onChange={handleChange}
           required
-          className='mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm'
+          className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
         />
       </div>
-      <div className='mb-4'>
-        <label htmlFor="author" className='block text-sm font-medium text-gray-700'>Auteur :</label>
+      <div className="mb-4">
+        <label htmlFor="author" className="block text-sm font-medium text-white">Auteur :</label>
         <input
           type="text"
           id="author"
@@ -80,55 +78,94 @@ function CreateBookForm({ onSubmit }) {
           value={formData.author}
           onChange={handleChange}
           required
-          className='mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm'
+          className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
         />
       </div>
-      <div className='mb-4'>
-        <label htmlFor="genre" className='block text-sm font-medium text-gray-700'>Genre :</label>
-        <input
-          type="text"
-          id="genre"
-          name="genre"
-          value={formData.genre}
-          onChange={handleChange}
-          className='mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm'
-        />
+      <div className="mb-4">
+        <label htmlFor="genre" className="block text-sm font-medium text-white">
+          Genre :
+        </label>
+        <div className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+          {[
+            "Policier",
+            "Fiction",
+            "Romance",
+            "Science-fiction",
+            "Fantastique",
+            "Horreur",
+            "Historique",
+            "Biographie",
+            "Thriller",
+            "Aventure",
+          ].map((genre) => (
+            <div key={genre} className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id={genre}
+                name="genre"
+                value={genre}
+                checked={formData.genre.includes(genre)} 
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (e.target.checked) {
+                    setFormData({
+                      ...formData,
+                      genre: [...formData.genre, value],
+                    });
+                  } else {
+                    setFormData({
+                      ...formData,
+                      genre: formData.genre.filter((g) => g !== value),
+                    });
+                  }
+                }}
+                className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              />
+              <label htmlFor={genre} className="text-sm text-white">
+                {genre}
+              </label>
+            </div>
+          ))}
+        </div>
       </div>
-      <div className='mb-4'>
-        <label htmlFor="description" className='block text-sm font-medium text-gray-700'>Description :</label>
+      <div className="mb-4">
+        <label htmlFor="description" className="block text-sm font-medium text-white">Description :</label>
         <input
           type="text"
           id="description"
           name="description"
           value={formData.description}
           onChange={handleChange}
-          className='mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm'
+          className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
         />
       </div>
-      <div className='mb-4'>
-        <label htmlFor='publication' className='block text-sm font-medium text-gray-700'>Date de publication :</label>
+      <div className="mb-4">
+        <label htmlFor="publication" className="block text-sm font-medium text-white">Date de publication :</label>
         <input
           type="date"
           id="publication"
           name="publication"
           value={formData.publication}
           onChange={handleChange}
-          className='mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm'
+          className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
         />
       </div>
-      <div className='mb-4'>
-        <label htmlFor="format" className='block text-sm font-medium text-gray-700'>Format :</label>
+      <div className="mb-4">
+        <label htmlFor="format" className="block text-sm font-medium text-white">Format :</label>
         <input
-          type='text'
+          type="text"
           id="format"
           name="format"
           maxLength="50"
           value={formData.format}
           onChange={handleChange}
-          className='mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm'
+          className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
         />
       </div>
-      <button type="submit" className='px-4 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'>
+      <button
+        type="submit"
+        className="w-full px-4 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+      >
         Créer le livre
       </button>
     </form>
